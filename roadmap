@@ -1,0 +1,16 @@
+Phase 1:
+    Can read most standard image formats
+    Can display images in some unix-like terminal emulators
+
+Phase 2:
+    Can read nearly all common image formats
+    Image printing detail can be specified
+    Add more unix-like terminal emulator support
+
+Phase 3:
+    All (or as many as possible) unix-like terminal emulators supported
+    Automatically choose best display method for the unix-like terminal emulator used
+    Start work on support for Windows command prompt [optional]
+    
+Phase 4:
+    Fully support Windows command prompt [optional]
