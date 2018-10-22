@@ -1,0 +1,46 @@
+--- Supported features ---
+    - Supported image formats:
+        - jpeg
+        - png
+        - tga
+        - bmp
+        - psd (composite view)
+        - hdr
+        - pic
+        - gif (composite view)
+        - pgm (p5 only)
+        - ppm (p6 only)
+
+    - Supported terminal emulators:
+        - Konsole
+
+
+--- In progress features ---
+    - User can specify image display size
+    - Image size is chosen automatically based on terminal size
+
+
+--- Planned features ---
+    - Supported image formats:
+        - pgm (p2)
+        - ppm (p3)
+        - Animated gif
+
+    - Supported terminal emulators:
+        - gnome-terminal
+        - guake
+        - xfce4-terminal
+        - xterm
+        - GNU Screen
+        - tmux
+        - PuTTY [support is tentative]
+        - Win32 console [support is tentative]
+
+    - User can specify full color image [RGB]
+    - User can specify limited color image [256 colors]
+    - User can specify greyscale image [0-255]
+    - User can specify binary (b/w) image [0-1]
+    - User can specify whether dithering is used [support is tentative]
+    - User can render output image to file (with rendered characters) [support is tentative]
+
+    - Color render mode is chosen automatically based on terminal emulator's supported color pallet
