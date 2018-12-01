@@ -71,33 +71,33 @@ int main(int argc, char* argv[])
     // Ncurses setup
     initscr();
     signal(SIGWINCH, term_resize_handler);
-    while(getch() != '\n') {
-        data = stbi_load(filename, &x, &y, &n, 0);
-
-        img.color = (color_t **) malloc(sizeof(color_t *) * y);
-        for (int i = 0; i < y; ++i)
-        {
-            img.color[i] = (color_t *) malloc(sizeof(color_t) * x);
-        }
-        img.size_x = x;
-        img.size_y = y;
-        img.channels = n;
-
-        unpack_image(img, data, (x*y*n));
-        img_resized = downsmaple_image(2 * height_in, height_in, img);
-
-        for (int i = 0; i < height_in; ++i)
-        {
-            for (int j = 0; j < 2 * height_in; ++j)
-            {
-                printf("\033[38;2;%u;%u;%um%c", img_resized.color[i][j].r, img_resized.color[i][j].g, img_resized.color[i][j].b, (char) 35);
-            }
-
-            printf("\n");
-        }
-    }
-    printf("Width = %d, Height = %d\n", COLS, LINES);
     endwin();
+
+    data = stbi_load(filename, &x, &y, &n, 0);
+
+    img.color = (color_t **) malloc(sizeof(color_t *) * y);
+    for (int i = 0; i < y; ++i)
+    {
+        img.color[i] = (color_t *) malloc(sizeof(color_t) * x);
+    }
+    img.size_x = x;
+    img.size_y = y;
+    img.channels = n;
+
+    unpack_image(img, data, (x*y*n));
+    img_resized = downsmaple_image(2 * (LINES-1), (LINES-1), img);
+
+    for (int i = 0; i < (LINES-1); ++i)
+    {
+        for (int j = 0; j < 2 * (LINES-1); ++j)
+        {
+            printf("\033[38;2;%u;%u;%um%c", img_resized.color[i][j].r, img_resized.color[i][j].g, img_resized.color[i][j].b, (char) 35);
+        }
+
+        printf("\n");
+    }
+
+    //printf("Width = %d, Height = %d\n", COLS, LINES);
     stbi_image_free(data);
     return 0;
 }
