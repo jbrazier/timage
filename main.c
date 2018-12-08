@@ -91,7 +91,7 @@ int main(int argc, char* argv[])
     {
         for (int j = 0; j < 2 * (LINES-1); ++j)
         {
-            printf("\033[38;2;%u;%u;%um%c", img_resized.color[i][j].r, img_resized.color[i][j].g, img_resized.color[i][j].b, (char) 35);
+            printf("\033[38;2;%u;%u;%um\u2588", img_resized.color[i][j].r, img_resized.color[i][j].g, img_resized.color[i][j].b);
         }
 
         printf("\n");
