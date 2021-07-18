@@ -10,7 +10,7 @@
  *
  *    DESCRIPTION: Timage (from terminal image) is a terminal based image viewer.
  * 
- *      COPYRIGHT: Copyright 2018, 2019 Joshua Brazier
+ *      COPYRIGHT: Copyright 2018 - 2021 Joshua Brazier
  * 
  * LICENSE NOTICE: This file is part of Timage.
  * 
@@ -59,7 +59,7 @@ typedef struct {
     double ratio;
 } image_t;
 
-const char version_string[] = "1.0.0";
+const char version_string[] = "1.0.1";
 
 // Prototypes
 image_t downsmaple_image(int x_size, int y_size, image_t in_img);
@@ -67,15 +67,13 @@ bool file_is_valid(const char * path);
 void print_copyright(void);
 void print_help(void);
 void term_resize_handler(int sig);
-void unpack_image(image_t img, unsigned char * img_pkg, int size);
+bool unpack_image(image_t img, unsigned char * img_pkg, int size);
 
 int main(int argc, char* argv[])
 {
     int x;                  // Width of the raw image
     int y;                  // Height of the raw image
     int n;                  // Number of color channels in the raw image
-    int printed_img_height; // Height of the image output to the terminal
-    int printed_img_width;  // Width of the image output to the terminal
     int height_in = 0;      // Custom height specified
     int TERM_LINES;         // Set to terminal height or user specified height
     unsigned char * data;   // Raw image data
@@ -83,7 +81,6 @@ int main(int argc, char* argv[])
     image_t img;            // Better image container
     image_t img_resized;    // Resized image for printing to terminal
     double term_ratio;      // Aspect ratio of the terminal
-    struct stat st;         // For checking input file validity
     
     // Handle command line arguments
     // TODO: Refactor this
@@ -96,15 +93,15 @@ int main(int argc, char* argv[])
     }
     else if (argc == 2)
     {
-        if (strcmp(argv[1], "-h"    ) == 0 ||
-            strcmp(argv[1], "--help") == 0 )
+        if (strcmp(argv[1], "-h") == 0 ||
+                strcmp(argv[1], "--help") == 0 )
         {
             print_help();
             printf("\n");
             print_copyright();
             return 0;
         }
-        else if (strcmp(argv[1], "-v"       ) == 0 ||
+        else if (strcmp(argv[1], "-v") == 0 ||
                  strcmp(argv[1], "--version") == 0 )
         {
             printf("Timage v%s\n", version_string);
@@ -114,7 +111,7 @@ int main(int argc, char* argv[])
         else
         {
             strncpy(filename, argv[1], 256);
-            filename[256] = '\0';
+            filename[255] = '\0';
             
             if (!file_is_valid(filename))
             {
@@ -125,16 +122,16 @@ int main(int argc, char* argv[])
     }
     else if (argc == 3)
     {
-        if (strcmp(argv[1], "-h"    ) == 0 ||
-            strcmp(argv[1], "--help") == 0 )
+        if (strcmp(argv[1], "-h") == 0 ||
+                strcmp(argv[1], "--help") == 0 )
         {
             print_help();
             printf("\n");
             print_copyright();
             return 0;
         }
-        else if (strcmp(argv[1], "-v"       ) == 0 ||
-            strcmp(argv[1], "--version") == 0 )
+        else if (strcmp(argv[1], "-v") == 0 ||
+                strcmp(argv[1], "--version") == 0 )
         {
             printf("Timage v%s\n", version_string);
             print_copyright();
@@ -143,7 +140,7 @@ int main(int argc, char* argv[])
         else
         {
             strncpy(filename, argv[1], 256);
-            filename[256] = '\0';
+            filename[255] = '\0';
             
             if (!file_is_valid(filename))
             {
@@ -156,16 +153,16 @@ int main(int argc, char* argv[])
     }
     else if (argc >= 4)
     {
-        if (strcmp(argv[1], "-h"    ) == 0 ||
-            strcmp(argv[1], "--help") == 0 )
+        if (strcmp(argv[1], "-h") == 0 ||
+                strcmp(argv[1], "--help") == 0 )
         {
             print_help();
             printf("\n");
             print_copyright();
             return 0;
         }
-        else if (strcmp(argv[1], "-v"       ) == 0 ||
-            strcmp(argv[1], "--version") == 0 )
+        else if (strcmp(argv[1], "-v") == 0 ||
+                strcmp(argv[1], "--version") == 0 )
         {
             printf("Timage v%s\n", version_string);
             print_copyright();
@@ -175,7 +172,7 @@ int main(int argc, char* argv[])
         {
             printf("\"%s\" is an invalid option.\n\n", argv[1]);
             strncpy(filename, argv[2], 256);
-            filename[256] = '\0';
+            filename[255] = '\0';
             
             if (!file_is_valid(filename))
             {
@@ -210,7 +207,12 @@ int main(int argc, char* argv[])
     term_ratio = (double) COLS / (double) ((TERM_LINES - 1) * 2);
 
     // Unpack and downsample the image so it fits the correct number of "pixels"
-    unpack_image(img, data, (x*y*n));
+    if (!unpack_image(img, data, (x*y*n)))
+    {
+        fprintf(stderr, "[ERROR] Failed to unpack image data!\n");
+        return 1;
+    }
+
     if (term_ratio >= img.ratio)
     {
         int height = (TERM_LINES-1);
@@ -241,6 +243,8 @@ int main(int argc, char* argv[])
     return 0;
 }
 
+// Returns an image_t that has been downsampled to the size
+// x_size, y_size based on in_img.
 image_t downsmaple_image(int x_size, int y_size, image_t in_img)
 {
     double pixel_w = (double) in_img.size_x / (double) x_size;
@@ -293,6 +297,7 @@ image_t downsmaple_image(int x_size, int y_size, image_t in_img)
     return ret;
 }
 
+// Returns true if path points to a file that exists and is valid.
 bool file_is_valid(const char * path)
 {
     struct stat st;
@@ -300,14 +305,16 @@ bool file_is_valid(const char * path)
     return (stat(path, &st) >= 0);
 }
 
+// Prints the copyright message to the terminal.
 void print_copyright(void)
 {
-    printf("Timage  Copyright (C) 2018, 2019  Joshua Brazier\n");
+    printf("Timage  Copyright (C) 2018 - 2021  Joshua Brazier\n");
     printf("This program comes with ABSOLUTELY NO WARRANTY.\n");
     printf("This is free software, and you are welcome to redistribute it\n");
     printf("under certain conditions; see the file COPYING for details.\n");
 }
 
+// Prints the help message to the terminal.
 void print_help(void)
 {
     printf("Usage: timage [OPTION] [FILE] [HEIGHT]\n");
@@ -320,6 +327,7 @@ void print_help(void)
     printf("ratio.\n");
 }
 
+// Signal handler for a terminal resize event.
 void term_resize_handler(int sig)
 {
     int x, y;
@@ -342,7 +350,12 @@ void term_resize_handler(int sig)
     signal(SIGWINCH, term_resize_handler);
 }
 
-void unpack_image(image_t img, unsigned char * img_pkg, int size)
+// Unpacks an image returned by the image processing library into
+// a more convenient image_t container. img_pkg is the input, size
+// is the size of the input in number of elements, and img is the
+// returned image_t container. Returns true if unpack was successful,
+// false otherwise.
+bool unpack_image(image_t img, unsigned char * img_pkg, int size)
 {
     int k = 0;
 
@@ -350,6 +363,11 @@ void unpack_image(image_t img, unsigned char * img_pkg, int size)
     {
         for (int j = 0; j < img.size_x; ++j)
         {
+            if (k+2 >= size)
+            {
+                return false;
+            }
+
             img.color[i][j].r = (uint8_t) img_pkg[k];
             img.color[i][j].g = (uint8_t) img_pkg[k+1];
             img.color[i][j].b = (uint8_t) img_pkg[k+2];
@@ -357,6 +375,8 @@ void unpack_image(image_t img, unsigned char * img_pkg, int size)
             k += 3;
         }
     }
+
+    return true;
 }
 
 
